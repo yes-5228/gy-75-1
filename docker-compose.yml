@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    container_name: elevator_backend
+    environment:
+      - CORS_ORIGINS=*
+      - DATABASE_URL=sqlite:////data/elevator_maintenance.db
+    volumes:
+      - backend-data:/data
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: ./frontend
+    container_name: elevator_frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  backend-data:
