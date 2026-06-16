@@ -18,7 +18,10 @@ def maintenance_plans():
 
 @bp.post("/maintenance-plans")
 def add_maintenance_plan():
-    return create_plan(request.get_json() or {}), 201
+    try:
+        return create_plan(request.get_json() or {}), 201
+    except ValueError as e:
+        return {"error": str(e)}, 400
 
 
 @bp.patch("/maintenance-plans/<int:plan_id>")

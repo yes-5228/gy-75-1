@@ -1,6 +1,8 @@
 from app.extensions import db
-from app.models import InspectionRecord, MaintenancePlan, parse_date
+from app.models import Elevator, InspectionRecord, MaintenancePlan, parse_date
 from app.repositories.base import commit
+
+ROUTINE_PLAN_TYPES = {"Semi-monthly", "Monthly", "Quarterly", "Annual test"}
 
 
 def list_plans():
@@ -9,9 +11,14 @@ def list_plans():
 
 
 def create_plan(payload):
+    elevator = Elevator.query.get_or_404(payload["elevatorId"])
+    plan_type = payload["planType"]
+    if elevator.is_out_of_service and plan_type in ROUTINE_PLAN_TYPES:
+        raise ValueError("Cannot create routine maintenance plan for out-of-service elevator")
+
     plan = MaintenancePlan(
         title=payload["title"],
-        plan_type=payload["planType"],
+        plan_type=plan_type,
         scheduled_date=parse_date(payload["scheduledDate"]),
         assignee=payload["assignee"],
         status=payload.get("status", "Pending"),

@@ -1,11 +1,11 @@
 ﻿<script setup>
-import { reactive } from 'vue'
+import { computed, reactive } from 'vue'
 import { Check } from 'lucide-vue-next'
 import DataTable from '../components/DataTable.vue'
 import SectionHeader from '../components/SectionHeader.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 
-defineProps({
+const props = defineProps({
   plans: { type: Array, required: true },
   elevators: { type: Array, required: true },
 })
@@ -19,6 +19,17 @@ const form = reactive({
   assignee: '',
   elevatorId: '',
   notes: '',
+})
+
+const ROUTINE_PLAN_TYPES = ['Semi-monthly', 'Monthly', 'Quarterly', 'Annual test']
+
+const isRoutinePlan = computed(() => ROUTINE_PLAN_TYPES.includes(form.planType))
+
+const selectableElevators = computed(() => {
+  if (isRoutinePlan.value) {
+    return props.elevators.filter((e) => !e.isOutOfService)
+  }
+  return props.elevators
 })
 
 function resetForm() {
@@ -68,10 +79,14 @@ function submit() {
           <span>Elevator</span>
           <select v-model="form.elevatorId" required>
             <option value="" disabled>Select elevator</option>
-            <option v-for="elevator in elevators" :key="elevator.id" :value="elevator.id">
+            <option v-for="elevator in selectableElevators" :key="elevator.id" :value="elevator.id">
               {{ elevator.code }} - {{ elevator.communityName }}
+              <span v-if="elevator.isOutOfService"> (Out of Service)</span>
             </option>
           </select>
+          <p v-if="isRoutinePlan && elevators.some(e => e.isOutOfService)" style="margin: 4px 0 0; font-size: 12px; color: #829098;">
+            Routine plans are not available for out-of-service elevators.
+          </p>
         </label>
         <label class="wide">
           <span>Notes</span>
@@ -91,12 +106,16 @@ function submit() {
           { key: 'title', label: 'Plan' },
           { key: 'planType', label: 'Type' },
           { key: 'elevatorCode', label: 'Elevator' },
+          { key: 'elevatorStatus', label: 'Elevator Status' },
           { key: 'scheduledDate', label: 'Date' },
           { key: 'assignee', label: 'Assignee' },
           { key: 'status', label: 'Status' },
         ]"
         :rows="plans"
       >
+        <template #elevatorStatus="{ row }">
+          <StatusBadge :value="row.elevatorOutOfService ? 'Out of Service' : 'Normal'" />
+        </template>
         <template #status="{ row }">
           <select class="inline-select" :value="row.status" @change="emit('update', row.id, { status: $event.target.value })">
             <option>Pending</option>

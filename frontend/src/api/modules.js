@@ -20,3 +20,9 @@ export const repairApi = {
   createTracking: (payload) => post('/api/tracking', payload),
   statistics: () => get('/api/statistics'),
 }
+
+export const outageApi = {
+  records: (elevatorId) => get(`/api/outage-records${elevatorId ? `?elevatorId=${elevatorId}` : ''}`),
+  register: (payload) => post('/api/outage-records', payload),
+  restore: (id, payload) => post(`/api/outage-records/${id}/restore`, payload),
+}

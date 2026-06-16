@@ -33,11 +33,26 @@ class Elevator(db.Model):
     unit = db.Column(db.String(80), nullable=False)
     brand = db.Column(db.String(80), nullable=False)
     status = db.Column(db.String(40), default="Normal", nullable=False)
+    is_out_of_service = db.Column(db.Boolean, default=False, nullable=False)
     community_id = db.Column(db.Integer, db.ForeignKey("communities.id"), nullable=False)
 
     community = db.relationship("Community", back_populates="elevators")
+    outage_records = db.relationship(
+        "OutageRecord",
+        back_populates="elevator",
+        cascade="all, delete-orphan",
+        order_by="OutageRecord.start_time.desc()",
+    )
+
+    @property
+    def active_outage(self):
+        return next(
+            (record for record in self.outage_records if record.end_time is None),
+            None,
+        )
 
     def to_dict(self):
+        active_outage = self.active_outage
         return {
             "id": self.id,
             "code": self.code,
@@ -45,8 +60,42 @@ class Elevator(db.Model):
             "unit": self.unit,
             "brand": self.brand,
             "status": self.status,
+            "isOutOfService": self.is_out_of_service,
             "communityId": self.community_id,
             "communityName": self.community.name if self.community else "",
+            "activeOutage": active_outage.to_dict() if active_outage else None,
+        }
+
+
+class OutageRecord(db.Model):
+    __tablename__ = "outage_records"
+
+    id = db.Column(db.Integer, primary_key=True)
+    reason = db.Column(db.String(200), nullable=False)
+    reason_type = db.Column(db.String(40), default="Fault", nullable=False)
+    start_time = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expected_recovery_time = db.Column(db.DateTime, nullable=True)
+    end_time = db.Column(db.DateTime, nullable=True)
+    operator = db.Column(db.String(80), nullable=False)
+    notes = db.Column(db.Text, default="", nullable=False)
+    elevator_id = db.Column(db.Integer, db.ForeignKey("elevators.id"), nullable=False)
+
+    elevator = db.relationship("Elevator", back_populates="outage_records")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "reason": self.reason,
+            "reasonType": self.reason_type,
+            "startTime": self.start_time.isoformat(timespec="minutes") if self.start_time else None,
+            "expectedRecoveryTime": self.expected_recovery_time.isoformat(timespec="minutes") if self.expected_recovery_time else None,
+            "endTime": self.end_time.isoformat(timespec="minutes") if self.end_time else None,
+            "operator": self.operator,
+            "notes": self.notes,
+            "elevatorId": self.elevator_id,
+            "elevatorCode": self.elevator.code if self.elevator else "",
+            "communityName": self.elevator.community.name if self.elevator and self.elevator.community else "",
+            "isActive": self.end_time is None,
         }
 
 
@@ -76,6 +125,7 @@ class MaintenancePlan(db.Model):
             "elevatorId": self.elevator_id,
             "elevatorCode": self.elevator.code if self.elevator else "",
             "communityName": self.elevator.community.name if self.elevator and self.elevator.community else "",
+            "elevatorOutOfService": self.elevator.is_out_of_service if self.elevator else False,
         }
 
 
@@ -102,6 +152,7 @@ class InspectionRecord(db.Model):
             "attachmentUrl": self.attachment_url,
             "elevatorId": self.elevator_id,
             "elevatorCode": self.elevator.code if self.elevator else "",
+            "elevatorOutOfService": self.elevator.is_out_of_service if self.elevator else False,
         }
 
 
@@ -139,6 +190,7 @@ class FaultReport(db.Model):
             "elevatorId": self.elevator_id,
             "elevatorCode": self.elevator.code if self.elevator else "",
             "communityName": self.elevator.community.name if self.elevator and self.elevator.community else "",
+            "elevatorOutOfService": self.elevator.is_out_of_service if self.elevator else False,
         }
 
 

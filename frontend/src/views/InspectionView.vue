@@ -75,6 +75,7 @@ function submit() {
           { key: 'elevatorCode', label: 'Elevator' },
           { key: 'inspector', label: 'Inspector' },
           { key: 'result', label: 'Result' },
+          { key: 'elevatorStatus', label: 'Elevator Status' },
           { key: 'checklist', label: 'Checklist' },
           { key: 'attachmentUrl', label: 'Attachment' },
         ]"
@@ -82,6 +83,9 @@ function submit() {
       >
         <template #result="{ row }">
           <StatusBadge :value="row.result" />
+        </template>
+        <template #elevatorStatus="{ row }">
+          <StatusBadge :value="row.elevatorOutOfService ? 'Out of Service' : 'Normal'" />
         </template>
         <template #attachmentUrl="{ row }">
           <a v-if="row.attachmentUrl" :href="row.attachmentUrl" target="_blank" rel="noreferrer">Open</a>

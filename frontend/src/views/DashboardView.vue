@@ -13,7 +13,8 @@ const props = defineProps({
 })
 
 const metrics = computed(() => [
-  { label: 'Elevators', value: props.elevators.length, hint: 'Assets in maintenance scope' },
+  { label: 'Elevators', value: props.statistics.totalElevators || props.elevators.length, hint: 'Assets in maintenance scope' },
+  { label: 'Out of Service', value: props.statistics.outOfServiceElevators || 0, hint: 'Elevators currently stopped' },
   { label: 'Open Faults', value: props.statistics.openFaults, hint: 'Pending, active, or review' },
   { label: 'Completed Repairs', value: props.statistics.completedFaults, hint: 'Closed repair tickets' },
   { label: 'Repair Cost', value: `$${props.statistics.totalCost}`, hint: 'Tracked maintenance spend' },

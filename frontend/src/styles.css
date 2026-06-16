@@ -154,7 +154,7 @@ button {
 
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
   gap: 14px;
 }
 
@@ -323,15 +323,30 @@ th {
 }
 
 .status-badge[data-status="已完成"],
-.status-badge[data-status="正常"] {
+.status-badge[data-status="正常"],
+.status-badge[data-status="Normal"],
+.status-badge[data-status="Restored"] {
   background: #e6f5ee;
   color: #0f7758;
+}
+
+.status-badge[data-status="Out of Service"],
+.status-badge[data-status="停运"] {
+  background: #fdebea;
+  color: #b13d32;
 }
 
 .inline-select {
   width: 110px;
   padding: 6px 8px;
   margin-right: 8px;
+}
+
+.restore-btn {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 13px;
+  gap: 6px;
 }
 
 .notice {

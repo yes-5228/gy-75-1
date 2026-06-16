@@ -95,6 +95,7 @@ function submit() {
           { key: 'reporter', label: 'Reporter' },
           { key: 'priority', label: 'Priority' },
           { key: 'status', label: 'Status' },
+          { key: 'elevatorStatus', label: 'Elevator Status' },
           { key: 'description', label: 'Description' },
         ]"
         :rows="faults"
@@ -104,6 +105,9 @@ function submit() {
         </template>
         <template #status="{ row }">
           <StatusBadge :value="row.status" />
+        </template>
+        <template #elevatorStatus="{ row }">
+          <StatusBadge :value="row.elevatorOutOfService ? 'Out of Service' : 'Normal'" />
         </template>
       </DataTable>
     </section>

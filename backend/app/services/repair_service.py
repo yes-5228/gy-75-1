@@ -1,7 +1,7 @@
 from sqlalchemy import func
 
 from app.extensions import db
-from app.models import FaultReport, RepairTracking
+from app.models import Elevator, FaultReport, RepairTracking
 from app.repositories.base import commit
 
 
@@ -63,6 +63,8 @@ def statistics():
     total_cost = db.session.query(func.coalesce(func.sum(RepairTracking.cost), 0)).scalar()
     open_faults = sum(count for status, count in status_counts.items() if status in OPEN_STATUSES)
     completed_faults = sum(count for status, count in status_counts.items() if status in DONE_STATUSES)
+    out_of_service_elevators = Elevator.query.filter_by(is_out_of_service=True).count()
+    total_elevators = Elevator.query.count()
     return {
         "totalFaults": FaultReport.query.count(),
         "openFaults": open_faults,
@@ -70,4 +72,6 @@ def statistics():
         "totalCost": round(float(total_cost), 2),
         "statusCounts": status_counts,
         "priorityCounts": priority_counts,
+        "totalElevators": total_elevators,
+        "outOfServiceElevators": out_of_service_elevators,
     }

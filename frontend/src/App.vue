@@ -1,12 +1,13 @@
 ﻿<script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { Activity, ClipboardCheck, FileClock, LayoutDashboard, Wrench } from 'lucide-vue-next'
-import { catalogApi, maintenanceApi, repairApi } from './api/modules'
+import { Activity, ClipboardCheck, FileClock, LayoutDashboard, Power, Wrench } from 'lucide-vue-next'
+import { catalogApi, maintenanceApi, outageApi, repairApi } from './api/modules'
 import AppShell from './components/AppShell.vue'
 import DashboardView from './views/DashboardView.vue'
 import FaultReportView from './views/FaultReportView.vue'
 import InspectionView from './views/InspectionView.vue'
 import MaintenancePlanView from './views/MaintenancePlanView.vue'
+import OutageManagementView from './views/OutageManagementView.vue'
 import RepairTrackingView from './views/RepairTrackingView.vue'
 
 const activeView = ref('dashboard')
@@ -20,6 +21,7 @@ const state = reactive({
   inspections: [],
   faults: [],
   tracking: [],
+  outageRecords: [],
   statistics: {
     totalFaults: 0,
     openFaults: 0,
@@ -27,6 +29,8 @@ const state = reactive({
     totalCost: 0,
     statusCounts: {},
     priorityCounts: {},
+    totalElevators: 0,
+    outOfServiceElevators: 0,
   },
 })
 
@@ -35,6 +39,7 @@ const tabs = [
   { id: 'plans', label: 'Maintenance Plans', icon: FileClock },
   { id: 'inspections', label: 'Inspections', icon: ClipboardCheck },
   { id: 'faults', label: 'Fault Reports', icon: Activity },
+  { id: 'outage', label: 'Outage Management', icon: Power },
   { id: 'tracking', label: 'Repair Tracking', icon: Wrench },
 ]
 
@@ -44,7 +49,7 @@ async function loadAll() {
   loading.value = true
   error.value = ''
   try {
-    const [communities, elevators, plans, inspections, faults, tracking, statistics] = await Promise.all([
+    const [communities, elevators, plans, inspections, faults, tracking, statistics, outageRecords] = await Promise.all([
       catalogApi.communities(),
       catalogApi.elevators(),
       maintenanceApi.plans(),
@@ -52,6 +57,7 @@ async function loadAll() {
       repairApi.faults(),
       repairApi.tracking(),
       repairApi.statistics(),
+      outageApi.records(),
     ])
     state.communities = communities.items
     state.elevators = elevators.items
@@ -60,6 +66,7 @@ async function loadAll() {
     state.faults = faults.items
     state.tracking = tracking.items
     state.statistics = statistics
+    state.outageRecords = outageRecords.items
   } catch (err) {
     error.value = err.message
   } finally {
@@ -89,6 +96,16 @@ async function createFault(payload) {
 
 async function createTracking(payload) {
   await repairApi.createTracking(payload)
+  await loadAll()
+}
+
+async function registerOutage(payload) {
+  await outageApi.register(payload)
+  await loadAll()
+}
+
+async function restoreOutage(id, payload) {
+  await outageApi.restore(id, payload)
   await loadAll()
 }
 
@@ -130,6 +147,13 @@ onMounted(loadAll)
       :faults="state.faults"
       :elevators="state.elevators"
       @create="createFault"
+    />
+    <OutageManagementView
+      v-else-if="activeView === 'outage'"
+      :records="state.outageRecords"
+      :elevators="state.elevators"
+      @register="registerOutage"
+      @restore="restoreOutage"
     />
     <RepairTrackingView
       v-else
