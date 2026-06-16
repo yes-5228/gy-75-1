@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, computed } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { Power, RotateCcw } from 'lucide-vue-next'
 import DataTable from '../components/DataTable.vue'
 import SectionHeader from '../components/SectionHeader.vue'
@@ -22,9 +22,9 @@ const form = reactive({
   elevatorId: '',
 })
 
-const activeElevators = computed(() =>
-  props.elevators.filter((e) => !e.isOutOfService)
-)
+const restoreModal = ref(false)
+const restoreTargetId = ref(null)
+const restoreNotes = ref('')
 
 const outOfServiceElevators = computed(() =>
   props.elevators.filter((e) => e.isOutOfService)
@@ -57,8 +57,24 @@ function submit() {
   resetForm()
 }
 
-function restore(recordId) {
-  emit('restore', recordId, { notes: '' })
+function openRestoreModal(recordId) {
+  restoreTargetId.value = recordId
+  restoreNotes.value = ''
+  restoreModal.value = true
+}
+
+function cancelRestore() {
+  restoreModal.value = false
+  restoreTargetId.value = null
+  restoreNotes.value = ''
+}
+
+function confirmRestore() {
+  if (!restoreNotes.value.trim()) return
+  emit('restore', restoreTargetId.value, { notes: restoreNotes.value.trim() })
+  restoreModal.value = false
+  restoreTargetId.value = null
+  restoreNotes.value = ''
 }
 
 function getStatusLabel(record) {
@@ -75,8 +91,8 @@ function getStatusLabel(record) {
           <span>Elevator</span>
           <select v-model="form.elevatorId" required>
             <option value="" disabled>Select elevator</option>
-            <option v-for="elevator in activeElevators" :key="elevator.id" :value="elevator.id">
-              {{ elevator.code }} - {{ elevator.communityName }}
+            <option v-for="elevator in elevators" :key="elevator.id" :value="elevator.id">
+              {{ elevator.code }} - {{ elevator.communityName }}{{ elevator.isOutOfService ? ' (Out of Service)' : '' }}
             </option>
           </select>
         </label>
@@ -133,7 +149,7 @@ function getStatusLabel(record) {
         :rows="records.filter((r) => r.isActive)"
       >
         <template #action="{ row }">
-          <button class="primary-action restore-btn" @click="restore(row.id)">
+          <button class="primary-action restore-btn" @click="openRestoreModal(row.id)">
             <RotateCcw :size="14" />
             <span>Restore</span>
           </button>
@@ -161,5 +177,23 @@ function getStatusLabel(record) {
         </template>
       </DataTable>
     </section>
+
+    <div v-if="restoreModal" class="modal-overlay" @click.self="cancelRestore">
+      <div class="modal-box">
+        <h3>Restore Elevator Service</h3>
+        <p class="modal-hint">Please provide a recovery description before restoring service.</p>
+        <label>
+          <span>Recovery notes</span>
+          <textarea v-model="restoreNotes" rows="3" required placeholder="Describe what was done, parts replaced, tests performed, etc."></textarea>
+        </label>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="cancelRestore">Cancel</button>
+          <button class="primary-action" :disabled="!restoreNotes.trim()" @click="confirmRestore">
+            <RotateCcw :size="14" />
+            <span>Confirm Restore</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

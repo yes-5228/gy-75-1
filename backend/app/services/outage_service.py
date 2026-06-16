@@ -14,8 +14,6 @@ def list_outage_records(elevator_id=None):
 
 def register_outage(payload):
     elevator = Elevator.query.get_or_404(payload["elevatorId"])
-    if elevator.is_out_of_service:
-        raise ValueError("Elevator is already out of service")
 
     record = OutageRecord(
         reason=payload["reason"],
@@ -27,8 +25,9 @@ def register_outage(payload):
         elevator_id=payload["elevatorId"],
     )
 
-    elevator.is_out_of_service = True
-    elevator.status = "Out of Service"
+    if not elevator.is_out_of_service:
+        elevator.is_out_of_service = True
+        elevator.status = "Out of Service"
 
     db.session.add(record)
     db.session.add(elevator)
@@ -41,17 +40,24 @@ def restore_service(outage_id, payload=None):
     if record.end_time is not None:
         raise ValueError("Outage record is already closed")
 
+    if not payload or not payload.get("notes", "").strip():
+        raise ValueError("Recovery notes are required")
+
     record.end_time = datetime.utcnow()
-    if payload and payload.get("notes"):
-        record.notes = (record.notes + "\n" + payload["notes"]) if record.notes else payload["notes"]
+    record.notes = (record.notes + "\n" + payload["notes"].strip()) if record.notes else payload["notes"].strip()
 
     elevator = Elevator.query.get_or_404(record.elevator_id)
-    elevator.is_out_of_service = False
-    active_fault_outage = any(
-        r.end_time is None and r.reason_type == "Fault"
+
+    remaining_active = any(
+        r.end_time is None and r.id != record.id
         for r in elevator.outage_records
     )
-    if not active_fault_outage:
+
+    if remaining_active:
+        elevator.is_out_of_service = True
+        elevator.status = "Out of Service"
+    else:
+        elevator.is_out_of_service = False
         elevator.status = "Normal"
 
     db.session.add(record)

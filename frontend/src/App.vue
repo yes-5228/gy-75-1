@@ -1,4 +1,4 @@
-﻿<script setup>
+﻿﻿<script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Activity, ClipboardCheck, FileClock, LayoutDashboard, Power, Wrench } from 'lucide-vue-next'
 import { catalogApi, maintenanceApi, outageApi, repairApi } from './api/modules'

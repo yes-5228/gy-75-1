@@ -1,4 +1,4 @@
-﻿<script setup>
+﻿﻿<script setup>
 import { computed } from 'vue'
 import DataTable from '../components/DataTable.vue'
 import MetricGrid from '../components/MetricGrid.vue'
@@ -36,10 +36,14 @@ const urgentFaults = computed(() => props.faults.filter((fault) => fault.priorit
             { key: 'title', label: 'Plan' },
             { key: 'elevatorCode', label: 'Elevator' },
             { key: 'scheduledDate', label: 'Date' },
+            { key: 'elevatorStatus', label: 'Elevator Status' },
             { key: 'status', label: 'Status' },
           ]"
           :rows="upcomingPlans"
         >
+          <template #elevatorStatus="{ row }">
+            <StatusBadge :value="row.elevatorOutOfService ? 'Out of Service' : 'Normal'" />
+          </template>
           <template #status="{ row }">
             <StatusBadge :value="row.status" />
           </template>
@@ -53,12 +57,16 @@ const urgentFaults = computed(() => props.faults.filter((fault) => fault.priorit
             { key: 'faultType', label: 'Type' },
             { key: 'elevatorCode', label: 'Elevator' },
             { key: 'priority', label: 'Priority' },
+            { key: 'elevatorStatus', label: 'Elevator Status' },
             { key: 'status', label: 'Status' },
           ]"
           :rows="urgentFaults"
         >
           <template #priority="{ row }">
             <StatusBadge :value="row.priority" />
+          </template>
+          <template #elevatorStatus="{ row }">
+            <StatusBadge :value="row.elevatorOutOfService ? 'Out of Service' : 'Normal'" />
           </template>
           <template #status="{ row }">
             <StatusBadge :value="row.status" />

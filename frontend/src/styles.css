@@ -408,3 +408,54 @@ a {
     grid-column: auto;
   }
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px;
+  width: 460px;
+  max-width: 92vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.modal-box h3 {
+  margin: 0 0 6px;
+  font-size: 18px;
+}
+
+.modal-hint {
+  color: #69757c;
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.modal-box label {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid #cfd9dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #48545b;
+  cursor: pointer;
+}

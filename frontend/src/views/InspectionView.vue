@@ -1,4 +1,4 @@
-﻿<script setup>
+﻿﻿<script setup>
 import { reactive } from 'vue'
 import { Upload } from 'lucide-vue-next'
 import DataTable from '../components/DataTable.vue'

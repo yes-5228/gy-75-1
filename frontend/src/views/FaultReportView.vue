@@ -1,4 +1,4 @@
-﻿<script setup>
+﻿﻿<script setup>
 import { reactive } from 'vue'
 import { Siren } from 'lucide-vue-next'
 import DataTable from '../components/DataTable.vue'

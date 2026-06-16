@@ -1,4 +1,4 @@
-﻿<script setup>
+﻿﻿<script setup>
 import { computed, reactive } from 'vue'
 import { Check } from 'lucide-vue-next'
 import DataTable from '../components/DataTable.vue'
