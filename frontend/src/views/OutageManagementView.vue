@@ -25,6 +25,7 @@ const form = reactive({
 const restoreModal = ref(false)
 const restoreTargetId = ref(null)
 const restoreNotes = ref('')
+const restoreTargetRecord = ref(null)
 
 const outOfServiceElevators = computed(() =>
   props.elevators.filter((e) => e.isOutOfService)
@@ -58,7 +59,9 @@ function submit() {
 }
 
 function openRestoreModal(recordId) {
+  const record = props.records.find((r) => r.id === recordId)
   restoreTargetId.value = recordId
+  restoreTargetRecord.value = record || null
   restoreNotes.value = ''
   restoreModal.value = true
 }
@@ -66,6 +69,7 @@ function openRestoreModal(recordId) {
 function cancelRestore() {
   restoreModal.value = false
   restoreTargetId.value = null
+  restoreTargetRecord.value = null
   restoreNotes.value = ''
 }
 
@@ -74,6 +78,7 @@ function confirmRestore() {
   emit('restore', restoreTargetId.value, { notes: restoreNotes.value.trim() })
   restoreModal.value = false
   restoreTargetId.value = null
+  restoreTargetRecord.value = null
   restoreNotes.value = ''
 }
 
@@ -181,6 +186,28 @@ function getStatusLabel(record) {
     <div v-if="restoreModal" class="modal-overlay" @click.self="cancelRestore">
       <div class="modal-box">
         <h3>Restore Elevator Service</h3>
+        <div v-if="restoreTargetRecord" class="modal-record-info">
+          <div class="info-row">
+            <span class="info-label">Elevator:</span>
+            <span class="info-value">{{ restoreTargetRecord.elevatorCode }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Community:</span>
+            <span class="info-value">{{ restoreTargetRecord.communityName }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Outage reason:</span>
+            <span class="info-value">{{ restoreTargetRecord.reason }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Reason type:</span>
+            <span class="info-value">{{ restoreTargetRecord.reasonType }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Start time:</span>
+            <span class="info-value">{{ restoreTargetRecord.startTime }}</span>
+          </div>
+        </div>
         <p class="modal-hint">Please provide a recovery description before restoring service.</p>
         <label>
           <span>Recovery notes</span>

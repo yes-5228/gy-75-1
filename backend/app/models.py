@@ -78,6 +78,7 @@ class OutageRecord(db.Model):
     end_time = db.Column(db.DateTime, nullable=True)
     operator = db.Column(db.String(80), nullable=False)
     notes = db.Column(db.Text, default="", nullable=False)
+    previous_status = db.Column(db.String(40), nullable=True)
     elevator_id = db.Column(db.Integer, db.ForeignKey("elevators.id"), nullable=False)
 
     elevator = db.relationship("Elevator", back_populates="outage_records")
@@ -92,6 +93,7 @@ class OutageRecord(db.Model):
             "endTime": self.end_time.isoformat(timespec="minutes") if self.end_time else None,
             "operator": self.operator,
             "notes": self.notes,
+            "previousStatus": self.previous_status,
             "elevatorId": self.elevator_id,
             "elevatorCode": self.elevator.code if self.elevator else "",
             "communityName": self.elevator.community.name if self.elevator and self.elevator.community else "",

@@ -22,6 +22,7 @@ def register_outage(payload):
         expected_recovery_time=datetime.fromisoformat(payload["expectedRecoveryTime"]) if payload.get("expectedRecoveryTime") else None,
         operator=payload["operator"],
         notes=payload.get("notes", ""),
+        previous_status=elevator.status,
         elevator_id=payload["elevatorId"],
     )
 
@@ -58,7 +59,12 @@ def restore_service(outage_id, payload=None):
         elevator.status = "Out of Service"
     else:
         elevator.is_out_of_service = False
-        elevator.status = "Normal"
+        all_records = sorted(elevator.outage_records, key=lambda r: r.start_time)
+        original_status = next(
+            (r.previous_status for r in all_records if r.previous_status),
+            "Normal",
+        )
+        elevator.status = original_status
 
     db.session.add(record)
     db.session.add(elevator)
